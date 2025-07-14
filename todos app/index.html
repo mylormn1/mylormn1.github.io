@@ -1,0 +1,45 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" >
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <link rel="stylesheet" href="./styles.css" >
+    <title>Todo list</title>
+</head>
+<body>
+    <div class="container">
+        <header class="text-center text-light my-4">
+            <h1 class="mb-4">Todo List </h1>
+             <form class="search">
+                 <input type="text" class="form-control m-auto" name='search' placeholder="Search for Todo Activities">
+             </form>
+        </header>
+             <ul class="list-group todos mx-auto text-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Achieve goals</span>
+                    <i class="fas fa-trash delete"></i>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Be in schedule</span>
+                    <i class="fas fa-trash delete"></i>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Invest </span>
+                    <i class="fas fa-trash delete"></i>
+                </li>
+             </ul>
+             <form class="add text-center my-4">
+                 <label class='text-light'>add a new todo</label>
+                 <input type="text" name='add' class="form-control m-auto">
+             </form>
+            
+
+             
+        
+    </div>
+
+    <script src='./app.js' ></script>
+</body>
+</html>
