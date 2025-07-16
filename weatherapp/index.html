@@ -1,0 +1,38 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mad Weather</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">        
+</head>
+<body>
+
+    <div class="container my-5 mx-auto">
+        <h1 class="text-muted text-center my-4">Mad Weather</h1>
+        <form class="changeLocation my-4 text-center text-muted">
+            <label for="city">Enter a location for weather information</label>
+            <input type="text" name='city' class="form-control p-2 cityinput">
+        </form>
+        <div class="card shadow-lg rounded d-none">
+            <img src="https://via.placeholder.com/150/0000FF/808080 ?Text=Digital.com" class="time card-image top">
+            <div class="icon pg-light mx-auto text-center">
+                <img src="" >
+            </div>
+            <div class="text-muted text-center text-uppercase details">
+                <h5 class="my-3"> City Name</h5>
+                <div class="my-3">Weather Condition</div>
+                <div class="display-4 my-4">
+                    <span>temp</span>
+                    <span>&deg;C</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="app.js"></script>
+    <script src="forecast.js"></script>
+</body>
+</html>
