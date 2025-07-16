@@ -25,10 +25,10 @@ const updateui = (data) => {
     </div>
     `;
     //images and icon managing
-    const iconsrc = `img/icons/${weatherdetails.WeatherIcon}.svg`;
+    const iconsrc = `weatherapp/img/icons/${weatherdetails.WeatherIcon}.svg`;
     icon.setAttribute('src',iconsrc);
 
-    let timesrc= weatherdetails.IsDayTime ? 'img/day.svg' : 'img/night.svg';
+    let timesrc= weatherdetails.IsDayTime ? 'weatherapp/img/day.svg' : 'weatherapp/img/night.svg';
     
     time.setAttribute('src',timesrc)
 
