@@ -25,8 +25,9 @@ const updateui = (data) => {
     </div>
     `;
     //images and icon managing
-    const iconsrc = `weatherapp/img/icons/${weatherdetails.WeatherIcon}.svg`;
-    icon.setAttribute('src',iconsrc);
+    const iconsrc = `./img/icons/${weatherdetails.WeatherIcon}.svg`;
+    icon.setAttribute('src', iconsrc);  // This will work if 'icon' is already the <img>
+
 
     let timesrc= weatherdetails.IsDayTime ? 'weatherapp/img/day.svg' : 'weatherapp/img/night.svg';
     
